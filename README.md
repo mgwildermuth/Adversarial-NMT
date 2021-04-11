@@ -10,9 +10,11 @@
 
 First, clone the repository and change directory into it
 
-`git clone https://github.com/mgwildermuth/Adversarial-NMT.git
+```
+git clone https://github.com/mgwildermuth/Adversarial-NMT.git
 cd Adversarial-NMT/
-ls`
+ls
+```
 
 Then, we need to process the data. The data we'll be downloading is the iwslt14 parallel dataset for de-en translation and preparing it for use by the model. All of the data preprocessing is done in the `preprocess/` folder.
 
