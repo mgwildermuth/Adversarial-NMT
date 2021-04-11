@@ -208,6 +208,8 @@ def prepare_training_data(args, dataset, split, generator, epoch_i, use_cuda):
 
             pos_tokens = sample['target'][selected_row]
 
+            print(f"neg_tokens.shape: {neg_tokens.shape}\n\npos_tokens: {pos_tokens.shape}")
+
             src_tokens = sample['net_input']['src_tokens'][selected_row]
 
             assert neg_tokens.size() == pos_tokens.size()

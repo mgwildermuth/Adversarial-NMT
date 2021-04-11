@@ -62,16 +62,9 @@ class BatchGenerator(object):
         hypos = self.generate(
             input['src_tokens'],
             input['src_lengths'],
-            beam_size=beam_size
-        )
-        '''
-        hypos = self.generate(
-            input['src_tokens'],
-            input['src_lengths'],
             beam_size=beam_size,
             maxlen=int(maxlen_a*srclen + maxlen_b)
         )
-        '''
         # set the tensor has the same width as max possible translation
         max_res = int(maxlen_a*srclen + maxlen_b)
         pred_tokens = input['src_tokens'].new(len(hypos), max_res).fill_(self.pad)
@@ -274,7 +267,8 @@ class BatchGenerator(object):
                     k=min(cand_size, probs.view(bsz, -1).size(1) - 1),  # -1 so we never select pad
                     out=(cand_scores, cand_indices),
                 )
-                torch.div(cand_indices, self.vocab_size, out=cand_beams)
+                #print(cand_indices, self.vocab_size, cand_beams)
+                torch.div(cand_indices, self.vocab_size, out=cand_beams, rounding_mode='floor')
                 cand_indices.fmod_(self.vocab_size)
             else:
                 # finalize all active hypotheses once we hit maxlen
