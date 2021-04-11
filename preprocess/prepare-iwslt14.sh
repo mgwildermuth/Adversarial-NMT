@@ -27,7 +27,7 @@ fi
 src=de
 tgt=en
 lang=de-en
-prep=iwslt14.tokenized.de-en
+prep=../data/iwslt14.tokenized.de-en
 tmp=$prep/tmp
 orig=orig
 
