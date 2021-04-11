@@ -62,9 +62,16 @@ class BatchGenerator(object):
         hypos = self.generate(
             input['src_tokens'],
             input['src_lengths'],
+            beam_size=beam_size
+        )
+        '''
+        hypos = self.generate(
+            input['src_tokens'],
+            input['src_lengths'],
             beam_size=beam_size,
             maxlen=int(maxlen_a*srclen + maxlen_b)
         )
+        '''
         # set the tensor has the same width as max possible translation
         max_res = int(maxlen_a*srclen + maxlen_b)
         pred_tokens = input['src_tokens'].new(len(hypos), max_res).fill_(self.pad)
