@@ -15,4 +15,4 @@ python preprocess.py -d ../data/iwslt14.tokenized.de-en/vocab.en.pkl -v 30000 -b
 python preprocess.py -d ../data/iwslt14.tokenized.de-en/vocab.de.pkl -v 30000 -b binarized_text.de.pkl -p ../data/iwslt14.tokenized.de-en/*.de
 
 # convert the pickeled vocab.*.pkl to dict.*.txt in the iwslt data folder
-python pickle_to_dict.py
+python pickle-to-dict.py
