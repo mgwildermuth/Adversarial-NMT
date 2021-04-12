@@ -195,7 +195,7 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         self.eos_idx = eos_idx
         self.maxlen = maxlen
         print("Inside constructor")
-        print(src)
+        print(src[0])
 
     def __getitem__(self, i):
         # subtract 1 for 0-based indexing
@@ -219,16 +219,17 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         if len(samples) == 0:
             return {}
         def merge(key, left_pad, move_eos_to_beginning=False):
-            #print("Calling merge")
-            #print(samples)
+            print("Calling merge")
+            print(samples)
             #print(pad_idx, eos_idx)
-            #print([s[key].size(0) for s in samples])
+            #print([s[key].shape for s in samples])
             #print([s[key] for s in samples if s[key].size(0) <= maxlen])
             return LanguagePairDataset.collate_tokens(
                 [s[key] for s in samples],
                 pad_idx, eos_idx, left_pad, move_eos_to_beginning, maxlen
             )
 
+        #
         id = torch.LongTensor([s['id'] for s in samples])
         src_tokens = merge('source', left_pad=LanguagePairDataset.LEFT_PAD_SOURCE)
         target = merge('target', left_pad=LanguagePairDataset.LEFT_PAD_TARGET)
