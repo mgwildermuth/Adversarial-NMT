@@ -27,6 +27,6 @@ if __name__ == "__main__":
 	lang1 = "en"
 	lang2 = "de"
 
-	shrink("train.{lang1}", "train.{lang2}")
-	shrink("valid.{lang1}", "valid.{lang2}")
-	shrink("test.{lang1}", "test.{lang2}")
+	shrink(f"train.{lang1}", f"train.{lang2}")
+	shrink(f"valid.{lang1}", f"valid.{lang2}")
+	shrink(f"test.{lang1}", f"test.{lang2}")
