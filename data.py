@@ -219,7 +219,7 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         if len(samples) == 0:
             return {}
         def merge(key, left_pad, move_eos_to_beginning=False):
-            #print("Calling merge")
+            print("Calling merge")
             #print(samples)
             #print(pad_idx, eos_idx)
             #print([s[key].shape for s in samples])
@@ -263,9 +263,9 @@ class LanguagePairDataset(torch.utils.data.Dataset):
     @staticmethod
     def collate_tokens(values, pad_idx, eos_idx, left_pad, move_eos_to_beginning=False, maxlen=None):
         if maxlen is not None:
-            #print("collate_tokens: v", values[0])
-            #print("collate_tokens: v.size(0)", values[0].size(0))
-            #print("collate_tokens: max size", max(v.size(0) for v in values))
+            print("collate_tokens: v", values[0])
+            print("collate_tokens: v.size(0)", values[0].size(0))
+            print("collate_tokens: max size", max(v.size(0) for v in values))
             assert max(v.size(0) for v in values) <= maxlen
         size = max(v.size(0) for v in values) if maxlen is None else maxlen
         res = values[0].new(len(values), size).fill_(pad_idx)
