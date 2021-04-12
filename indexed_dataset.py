@@ -122,6 +122,8 @@ class IndexedRawTextDataset(IndexedDataset):
                 tokens = Tokenizer.tokenize(line, dictionary, add_if_not_exist=False) + 1
                 self.tokens_list.append(tokens)
                 self.sizes.append(len(tokens))
+            #print(f"Read_data: self.lines: {self.lines}")
+            print(f"Read_data: self.tokens_list: {self.tokens_list[:10]}, self.sizes: {self.sizes[:10]}, max(self.sizes): {max(self.sizes)}")
         self.sizes = np.array(self.sizes)
 
     def __getitem__(self, i):

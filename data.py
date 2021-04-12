@@ -109,6 +109,8 @@ def load_raw_text_dataset(path, load_splits, src=None, dst=None, maxlen=None):
     for split in load_splits:
         src_path = os.path.join(path, '{}.{}'.format(split, src))
         dst_path = os.path.join(path, '{}.{}'.format(split, dst))
+        print(f"Data path: {src_path}, {src_dict}")
+        print(f"Data2 path: {dst_path}, {dst_dict}")
         dataset.splits[split] = LanguagePairDataset(
             IndexedRawTextDataset(src_path, src_dict),
             IndexedRawTextDataset(dst_path, dst_dict),
@@ -192,6 +194,8 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         self.pad_idx = pad_idx
         self.eos_idx = eos_idx
         self.maxlen = maxlen
+        print("Inside constructor")
+        print(src)
 
     def __getitem__(self, i):
         # subtract 1 for 0-based indexing
@@ -207,6 +211,7 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         return len(self.src)
 
     def collater(self, samples):
+        print("Collater called")
         return LanguagePairDataset.collate(samples, self.pad_idx, self.eos_idx, self.maxlen)
 
     @staticmethod
@@ -214,6 +219,11 @@ class LanguagePairDataset(torch.utils.data.Dataset):
         if len(samples) == 0:
             return {}
         def merge(key, left_pad, move_eos_to_beginning=False):
+            #print("Calling merge")
+            #print(samples)
+            #print(pad_idx, eos_idx)
+            #print([s[key].size(0) for s in samples])
+            #print([s[key] for s in samples if s[key].size(0) <= maxlen])
             return LanguagePairDataset.collate_tokens(
                 [s[key] for s in samples],
                 pad_idx, eos_idx, left_pad, move_eos_to_beginning, maxlen
@@ -252,6 +262,9 @@ class LanguagePairDataset(torch.utils.data.Dataset):
     @staticmethod
     def collate_tokens(values, pad_idx, eos_idx, left_pad, move_eos_to_beginning=False, maxlen=None):
         if maxlen is not None:
+            #print("collate_tokens: v", values[0])
+            #print("collate_tokens: v.size(0)", values[0].size(0))
+            #print("collate_tokens: max size", max(v.size(0) for v in values))
             assert max(v.size(0) for v in values) <= maxlen
         size = max(v.size(0) for v in values) if maxlen is None else maxlen
         res = values[0].new(len(values), size).fill_(pad_idx)

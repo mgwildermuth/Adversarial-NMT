@@ -46,10 +46,12 @@ def main(args):
     # Load dataset
     splits = ['train', 'valid']
     if data.has_binary_files(args.data, splits):
+        print("Loading bin dataset")
         dataset = data.load_dataset(
             args.data, splits, args.src_lang, args.trg_lang, args.fixed_max_len)
             #args.data, splits, args.src_lang, args.trg_lang)
     else:
+        print(f"Loading raw text dataset {args.data}")
         dataset = data.load_raw_text_dataset(
             args.data, splits, args.src_lang, args.trg_lang, args.fixed_max_len)
             #args.data, splits, args.src_lang, args.trg_lang)
