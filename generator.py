@@ -97,8 +97,8 @@ class LSTMEncoder(nn.Module):
         # packed_x = nn.utils.rnn.pack_padded_sequence(x, src_lengths.data.tolist())
 
         # apply LSTM
-        h0 = Variable(x.data.new(self.num_layers, bsz, embed_dim).zero_())
-        c0 = Variable(x.data.new(self.num_layers, bsz, embed_dim).zero_())
+        h0 = Variable(x.data.new_zeros(self.num_layers, bsz, embed_dim).zero_())
+        c0 = Variable(x.data.new_zeros(self.num_layers, bsz, embed_dim).zero_())
         x, (final_hiddens, final_cells) = self.lstm(
             x,
             (h0, c0),
@@ -136,7 +136,7 @@ class AttentionLayer(nn.Module):
         # sum weighted sources
         x = (attn_scores.unsqueeze(2) * source_hids).sum(dim=0)
 
-        x = F.tanh(self.output_proj(torch.cat((x, input), dim=1)))
+        x = torch.tanh(self.output_proj(torch.cat((x, input), dim=1)))
         return x, attn_scores
 
 
@@ -164,6 +164,7 @@ class LSTMDecoder(nn.Module):
 
 
     def forward(self, prev_output_tokens, encoder_out, incremental_state=None):
+        print("generator.py: Before forward\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         if incremental_state is not None:
             prev_output_tokens = prev_output_tokens[:, -1:]
         bsz, seqlen = prev_output_tokens.size()
@@ -190,10 +191,12 @@ class LSTMDecoder(nn.Module):
             num_layers = len(self.layers)
             prev_hiddens = [encoder_hiddens[i] for i in range(num_layers)]
             prev_cells = [encoder_cells[i] for i in range(num_layers)]
-            input_feed = Variable(x.data.new(bsz, embed_dim).zero_())
+            input_feed = Variable(x.data.new_zeros(bsz, embed_dim).zero_())
 
-        attn_scores = Variable(x.data.new(srclen, seqlen, bsz).zero_())
+        print("generator.py: Before att_scores\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        attn_scores = Variable(x.data.new_zeros(srclen, seqlen, bsz).zero_())
         outs = []
+        print("generator.py: Before input feeding\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         for j in range(seqlen):
             # input feeding: concatenate context vector from previous time step
             input = torch.cat((x[j, :, :], input_feed), dim=1)
@@ -219,6 +222,8 @@ class LSTMDecoder(nn.Module):
             # save final output
             outs.append(out)
 
+        print("generator.py: After input feeding:\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+
         # cache previous states (no-op except during incremental generation)
         utils.set_incremental_state(
             self, incremental_state, 'cached_state', (prev_hiddens, prev_cells, input_feed))
@@ -231,6 +236,8 @@ class LSTMDecoder(nn.Module):
 
         # srclen x tgtlen x bsz -> bsz x tgtlen x srclen
         attn_scores = attn_scores.transpose(0, 2)
+
+        print("generator.py: Before fc_out:\n", torch.cuda.memory_summary(device=None, abbreviated=False))
 
         x = self.fc_out(x)
 

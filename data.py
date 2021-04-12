@@ -266,9 +266,11 @@ class LanguagePairDataset(torch.utils.data.Dataset):
             print("collate_tokens: v", values[0])
             print("collate_tokens: v.size(0)", values[0].size(0))
             print("collate_tokens: max size", max(v.size(0) for v in values))
+            print("Before collate assertion\n", torch.cuda.memory_summary(device=None, abbreviated=False))
             assert max(v.size(0) for v in values) <= maxlen
         size = max(v.size(0) for v in values) if maxlen is None else maxlen
         res = values[0].new(len(values), size).fill_(pad_idx)
+        print("Before collate assignment\n", torch.cuda.memory_summary(device=None, abbreviated=False))
 
         def copy_tensor(src, dst):
             assert dst.numel() == src.numel()
