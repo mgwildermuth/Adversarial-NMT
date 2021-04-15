@@ -31,10 +31,10 @@ def train_g(args, dataset):
     logging_meters['update_times'] = AverageMeter()
 
     # Build model
-    print("train_generator.py: Before generator creation\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+    #print("train_generator.py: Before generator creation\n", torch.cuda.memory_summary(device=None, abbreviated=False))
     generator = LSTMModel(args, dataset.src_dict, dataset.dst_dict, use_cuda=use_cuda)
     print(f"Generator parameters: {sum(p.numel() for p in generator.parameters() if p.requires_grad)}")
-    print("train_generator.py: After generator creation\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+    #print("train_generator.py: After generator creation\n", torch.cuda.memory_summary(device=None, abbreviated=False))
 
     if use_cuda:
         if len(args.gpuid) > 1:
@@ -44,7 +44,7 @@ def train_g(args, dataset):
     else:
         generator.cpu()
 
-    print("train_generator.py: After train_g finds cuda\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+    #print("train_generator.py: After train_g finds cuda\n", torch.cuda.memory_summary(device=None, abbreviated=False))
 
     optimizer = eval("torch.optim." + args.optimizer)(generator.parameters(), args.learning_rate)
 
@@ -81,7 +81,7 @@ def train_g(args, dataset):
             shard_id=args.distributed_rank,
             num_shards=args.distributed_world_size,
         )
-        print("train_generator.py: After dataloader\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("train_generator.py: After dataloader\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         # set training mode
         generator.train()
 
@@ -116,6 +116,7 @@ def train_g(args, dataset):
 
             torch.nn.utils.clip_grad_norm_(generator.parameters(), args.clip_norm)
             optimizer.step()
+            del sample
 
         # validation -- this is a crude estimation because there might be some padding at the end
         max_positions_valid = (

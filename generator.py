@@ -33,24 +33,41 @@ class LSTMModel(nn.Module):
         )
 
     def forward(self, sample):
+        #print("in forward")
+        n_i = sample["net_input"]["src_tokens"]
+        n_l = sample["net_input"]["src_lengths"]
+        #print(f"src tokens \n{n_i}")
+        #print(f"src lengths \n {n_l}")
+
         # encoder_output: (seq_len, batch, hidden_size * num_directions)
         # _encoder_hidden: (num_layers * num_directions, batch, hidden_size)
         # _encoder_cell: (num_layers * num_directions, batch, hidden_size)
         encoder_out = self.encoder(sample['net_input']['src_tokens'], sample['net_input']['src_lengths'])
         
+        #print("made it past encoder out")
+
         # # The encoder hidden is  (layers*directions) x batch x dim.
         # # If it's bidirectional, We need to convert it to layers x batch x (directions*dim).
         # if self.args.bidirectional:
         #     encoder_hiddens = torch.cat([encoder_hiddens[0:encoder_hiddens.size(0):2], encoder_hiddens[1:encoder_hiddens.size(0):2]], 2)
         #     encoder_cells = torch.cat([encoder_cells[0:encoder_cells.size(0):2], encoder_cells[1:encoder_cells.size(0):2]], 2)
 
+        #print(f"encoder out:\n {encoder_out}")
+
+        p_o = sample['net_input']['prev_output_tokens']
+        #print(f"prev out: {p_o}")
+
         decoder_out, attn_scores = self.decoder(sample['net_input']['prev_output_tokens'], encoder_out)
+        #print("here 1")
         decoder_out = F.log_softmax(decoder_out, dim=2)
+        #print("here 2")
         train_trg_batch = sample['target'].view(-1)
+        #print("here 3")
         sys_out_batch = decoder_out.contiguous().view(-1, decoder_out.size(-1))
+        #print("here 4")
         loss = F.nll_loss(sys_out_batch, train_trg_batch, size_average=False, ignore_index=self.dst_dict.pad(),
                           reduce=True)
-        return loss
+        return decoder_out, torch.argmax(decoder_out, dim=2)
 
     def get_normalized_probs(self, net_output, log_probs):
         """Get normalized probabilities (or log probs) from a net's output."""
@@ -164,7 +181,7 @@ class LSTMDecoder(nn.Module):
 
 
     def forward(self, prev_output_tokens, encoder_out, incremental_state=None):
-        print("generator.py: Before forward\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("generator.py: Before forward\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         if incremental_state is not None:
             prev_output_tokens = prev_output_tokens[:, -1:]
         bsz, seqlen = prev_output_tokens.size()
@@ -193,10 +210,10 @@ class LSTMDecoder(nn.Module):
             prev_cells = [encoder_cells[i] for i in range(num_layers)]
             input_feed = Variable(x.data.new_zeros(bsz, embed_dim).zero_())
 
-        print("generator.py: Before att_scores\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("generator.py: Before att_scores\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         attn_scores = Variable(x.data.new_zeros(srclen, seqlen, bsz).zero_())
         outs = []
-        print("generator.py: Before input feeding\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("generator.py: Before input feeding\n", torch.cuda.memory_summary(device=None, abbreviated=False))
         for j in range(seqlen):
             # input feeding: concatenate context vector from previous time step
             input = torch.cat((x[j, :, :], input_feed), dim=1)
@@ -222,7 +239,7 @@ class LSTMDecoder(nn.Module):
             # save final output
             outs.append(out)
 
-        print("generator.py: After input feeding:\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("generator.py: After input feeding:\n", torch.cuda.memory_summary(device=None, abbreviated=False))
 
         # cache previous states (no-op except during incremental generation)
         utils.set_incremental_state(
@@ -237,7 +254,7 @@ class LSTMDecoder(nn.Module):
         # srclen x tgtlen x bsz -> bsz x tgtlen x srclen
         attn_scores = attn_scores.transpose(0, 2)
 
-        print("generator.py: Before fc_out:\n", torch.cuda.memory_summary(device=None, abbreviated=False))
+        #print("generator.py: Before fc_out:\n", torch.cudary(device=None, abbreviated=False))
 
         x = self.fc_out(x)
 

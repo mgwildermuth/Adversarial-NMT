@@ -21,10 +21,11 @@ class PGLoss(torch.nn.Module):
             row_idx = torch.LongTensor(range(seqlen))
             if use_cuda:
                 row_idx = row_idx.cuda()
-            if self.ignore_index != None:
-                logprobs[:, :, self.ignore_index] = 0
+            #if self.ignore_index != None:
+            #    logprobs[:, :, self.ignore_index] = 0
             trg_log_prob = logprobs[i, :, :][row_idx, trg_label]
-            trg_log_prob *= reward[i]
+            #print(f"trg_log: {trg_log_prob.shape}, reward: {reward.shape}")
+            trg_log_prob *= reward[i, :][0]
 
             loss += -torch.sum(trg_log_prob)
 

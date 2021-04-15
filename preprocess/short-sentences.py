@@ -19,7 +19,7 @@ def shrink(path1, path2):
 	print(f"Eliminating lines over 50 words in {path1}, {path2}")
 	with open(f"../data/iwslt14.tokenized.de-en/{path1}", "w") as file1, open(f"../data/iwslt14.tokenized.de-en/{path2}", "w") as file2:
 		for x in range(len(f1_lines)):
-			if len(f1_lines[x].split(' ')) <= 50 and len(f2_lines[x].split(' ')) <= 50:
+			if len(f1_lines[x].split(' ')) <= 30 and len(f2_lines[x].split(' ')) <= 30:
 				file1.write(f1_lines[x])
 				file2.write(f2_lines[x])
 

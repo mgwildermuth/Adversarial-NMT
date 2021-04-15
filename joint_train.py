@@ -43,6 +43,10 @@ def main(args):
     use_cuda = (len(args.gpuid) >= 1)
     print("{0} GPU(s) are available".format(cuda.device_count()))
 
+    print("======printing args========")
+    print(args)
+    print("=================================")
+
     # Load dataset
     splits = ['train', 'valid']
     if data.has_binary_files(args.data, splits):
@@ -96,10 +100,13 @@ def main(args):
     generator = LSTMModel(args, dataset.src_dict, dataset.dst_dict, use_cuda=use_cuda)
     model_dict = generator.state_dict()
     pretrained_dict = torch.load(g_model_path)
+    #print(f"First dict: {pretrained_dict}")
     # 1. filter out unnecessary keys
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    #print(f"Second dict: {pretrained_dict}")
     # 2. overwrite entries in the existing state dict
     model_dict.update(pretrained_dict)
+    #print(f"model dict: {model_dict}")
     # 3. load the new state dict
     generator.load_state_dict(model_dict)
 
@@ -119,11 +126,14 @@ def main(args):
     # 2. overwrite entries in the existing state dict
     model_dict.update(pretrained_dict)
     # 3. load the new state dict
-    generator.load_state_dict(model_dict)
+    discriminator.load_state_dict(model_dict)
 
     print("Discriminator has successfully loaded!")
 
-    return
+    #return
+    print("starting main training loop")
+
+    torch.autograd.set_detect_anomaly(True)
 
     if use_cuda:
         if torch.cuda.device_count() > 1:
@@ -143,7 +153,7 @@ def main(args):
 
     # define loss function
     g_criterion = torch.nn.NLLLoss(size_average=False, ignore_index=dataset.dst_dict.pad(),reduce=True)
-    d_criterion = torch.nn.BCELoss()
+    d_criterion = torch.nn.CrossEntropyLoss()
     pg_criterion = PGLoss(ignore_index=dataset.dst_dict.pad(), size_average=True,reduce=True)
 
     # fix discriminator word embedding (as Wu et al. do)
@@ -217,8 +227,11 @@ def main(args):
                 sys_out_batch, prediction = generator(sample)
                 generator.decoder.is_testing = False
                 with torch.no_grad():
-                    reward = discriminator(sample['net_input']['src_tokens'], prediction, dataset.dst_dict.pad())
+                    n_i = sample['net_input']['src_tokens']
+                    #print(f"net input:\n{n_i}, pred: \n{prediction}")
+                    reward = discriminator(sample['net_input']['src_tokens'], prediction)# dataset.dst_dict.pad())
                 train_trg_batch = sample['target']
+                #print(f"sys_out_batch: {sys_out_batch.shape}:\n{sys_out_batch}")
                 pg_loss = pg_criterion(sys_out_batch, train_trg_batch, reward, use_cuda)
                 # logging.debug("G policy gradient loss at batch {0}: {1:.3f}, lr={2}".format(i, pg_loss.item(), g_optimizer.param_groups[0]['lr']))
                 g_optimizer.zero_grad()
@@ -238,6 +251,7 @@ def main(args):
                                                                                 g_optimizer.param_groups[0]['lr']))
             else:
                 # MLE training
+                #print(f"printing sample: \n{sample}")
                 sys_out_batch, _ = generator(sample)
                 train_trg_batch = sample['target'].view(-1)
                 sys_out_batch = sys_out_batch.contiguous().view(-1, sys_out_batch.size(-1))
@@ -285,9 +299,11 @@ def main(args):
             if use_cuda:
                 labels = labels.cuda()
 
-            disc_out = discriminator(src_sentence, trg_sentence, dataset.dst_dict.pad())
-            d_loss = d_criterion(disc_out, labels)
-            acc = torch.sum(torch.round(disc_out).squeeze(1) == labels).float() / len(labels)
+            disc_out = discriminator(src_sentence, trg_sentence)#, dataset.dst_dict.pad())
+            #print(f"disc out: {disc_out.shape}, labels: {labels.shape}")
+            #print(f"labels: {labels}")
+            d_loss = d_criterion(disc_out, labels.long())
+            acc = torch.sum(torch.argmax(torch.round(disc_out), dim = 1) == labels).float() / len(labels)
             d_logging_meters['train_acc'].update(acc)
             d_logging_meters['train_loss'].update(d_loss)
             # logging.debug("D training loss {0:.3f}, acc {1:.3f} at batch {2}: ".format(d_logging_meters['train_loss'].avg,
