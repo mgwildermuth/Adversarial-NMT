@@ -29,6 +29,7 @@ def shrink(data_path, lang1, lang2, sent_maxlen):
 		print(f"Eliminating lines over sent_maxlen words in {lang1_file_name}, {lang2_file_name}")
 		with open(os.path.join(data_path, lang1_file_name), "w") as file1, open(os.path.join(data_path, lang2_file_name), "w") as file2:
 			for x in range(len(f1_lines)):
+				#print("Help: ", type(len(f1_lines[x].split(' '))), type(sent_maxlen), type(len(f2_lines[x].split(' '))), type(sent_maxlen))
 				if len(f1_lines[x].split(' ')) <= sent_maxlen and len(f2_lines[x].split(' ')) <= sent_maxlen:
 					file1.write(f1_lines[x])
 					file2.write(f2_lines[x])
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 	langs = args[1]
 	lang1, lang2 = langs.split("-")
 
-	sent_maxlen = args[2]
+	sent_maxlen = int(args[2])
 
 	#lang1 = "en"
 	#lang2 = "de"
