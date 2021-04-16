@@ -224,7 +224,7 @@ def main(args):
             if rand >= 0.5:
                 # policy gradient training
                 generator.decoder.is_testing = True
-                sys_out_batch, prediction = generator(sample)
+                sys_out_batch, prediction,_ = generator(sample)
                 generator.decoder.is_testing = False
                 with torch.no_grad():
                     n_i = sample['net_input']['src_tokens']
@@ -240,10 +240,7 @@ def main(args):
                 g_optimizer.step()
 
                 # oracle valid
-                sys_out_batch, _ = generator(sample)
-                train_trg_batch = sample['target'].view(-1)
-                sys_out_batch = sys_out_batch.contiguous().view(-1, sys_out_batch.size(-1))
-                loss = g_criterion(sys_out_batch, train_trg_batch)
+                _,_,loss = generator(sample)
                 sample_size = sample['target'].size(0) if args.sentence_avg else sample['ntokens']
                 logging_loss = loss.data / sample_size / math.log(2)
                 g_logging_meters['train_loss'].update(logging_loss, sample_size)
@@ -252,10 +249,7 @@ def main(args):
             else:
                 # MLE training
                 #print(f"printing sample: \n{sample}")
-                sys_out_batch, _ = generator(sample)
-                train_trg_batch = sample['target'].view(-1)
-                sys_out_batch = sys_out_batch.contiguous().view(-1, sys_out_batch.size(-1))
-                loss = g_criterion(sys_out_batch, train_trg_batch)
+                _,_,loss = generator(sample)
                 sample_size = sample['target'].size(0) if args.sentence_avg else sample['ntokens']
                 nsentences = sample['target'].size(0)
                 logging_loss = loss.data / sample_size / math.log(2)
@@ -284,7 +278,7 @@ def main(args):
 
             with torch.no_grad():
                 generator.decoder.is_testing = True
-                _, prediction = generator(sample)
+                _, prediction, _ = generator(sample)
                 generator.decoder.is_testing = False
             fake_sentence = prediction
             fake_labels = Variable(torch.zeros(sample['target'].size(0)).float())
@@ -350,10 +344,7 @@ def main(args):
                     sample['target'] = sample['target'].cuda()
 
                 # generator validation
-                sys_out_batch, _ = generator(sample)
-                dev_trg_batch = sample['target'].view(-1)
-                sys_out_batch = sys_out_batch.contiguous().view(-1, sys_out_batch.size(-1))
-                loss = g_criterion(sys_out_batch, dev_trg_batch)
+                _,_,loss = generator(sample)
                 sample_size = sample['target'].size(0) if args.sentence_avg else sample['ntokens']
                 loss = loss / sample_size / math.log(2)
                 g_logging_meters['valid_loss'].update(loss, sample_size)
@@ -369,7 +360,7 @@ def main(args):
 
                 with torch.no_grad():
                     generator.decoder.is_testing = True
-                    _, prediction = generator(sample)
+                    _, prediction,_ = generator(sample)
                     generator.decoder.is_testing = False
                 fake_sentence = prediction
                 fake_labels = Variable(torch.zeros(sample['target'].size(0)).float())
