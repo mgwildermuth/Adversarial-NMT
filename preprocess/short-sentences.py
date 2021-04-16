@@ -2,7 +2,7 @@
 import sys
 import os
 
-def shrink(data_path, lang1, lang2, sent_maxlen):
+def shrink(data_path, lang1, lang2, sent_maxlen=32):
 	f1_lines = []
 	f2_lines = []
 	data_files = ["train", "valid", "test"]
@@ -19,7 +19,7 @@ def shrink(data_path, lang1, lang2, sent_maxlen):
 			f2_lines = file2.readlines()
 			all_f1 = file1.read()
 			all_f2 = file2.read()
-			
+
 			f1_write.write(all_f1)
 			f2_write.write(all_f2)
 
