@@ -153,7 +153,7 @@ def main(args):
 
     # define loss function
     g_criterion = torch.nn.NLLLoss(size_average=False, ignore_index=dataset.dst_dict.pad(),reduce=True)
-    d_criterion = torch.nn.CrossEntropyLoss()
+    d_criterion = torch.nn.BCEWithLogitsLoss()
     pg_criterion = PGLoss(ignore_index=dataset.dst_dict.pad(), size_average=True,reduce=True)
 
     # fix discriminator word embedding (as Wu et al. do)
@@ -303,7 +303,7 @@ def main(args):
             #print(f"disc out: {disc_out.shape}, labels: {labels.shape}")
             #print(f"labels: {labels}")
             d_loss = d_criterion(disc_out, labels.long())
-            acc = torch.sum(torch.argmax(torch.round(disc_out), dim = 1) == labels).float() / len(labels)
+            acc = torch.sum(torch.Sigmoid()(disc_out).round() == labels).float() / len(labels)
             d_logging_meters['train_acc'].update(acc)
             d_logging_meters['train_loss'].update(d_loss)
             # logging.debug("D training loss {0:.3f}, acc {1:.3f} at batch {2}: ".format(d_logging_meters['train_loss'].avg,
@@ -386,7 +386,7 @@ def main(args):
 
                 disc_out = discriminator(src_sentence, trg_sentence, dataset.dst_dict.pad())
                 d_loss = d_criterion(disc_out, labels)
-                acc = torch.sum(torch.round(disc_out).squeeze(1) == labels).float() / len(labels)
+                acc = torch.sum(torch.Sigmoid()(disc_out).round() == labels).float() / len(labels)
                 d_logging_meters['valid_acc'].update(acc)
                 d_logging_meters['valid_loss'].update(d_loss)
                 # logging.debug("D dev loss {0:.3f}, acc {1:.3f} at batch {2}".format(d_logging_meters['valid_loss'].avg,

@@ -7,6 +7,8 @@ class Discriminator(nn.Module):
     def __init__(self, args, src_dict, dst_dict, use_cuda = True):
         super(Discriminator, self).__init__()
 
+        print("=================\n single class disc \n ===================")
+
         self.src_dict_size = len(src_dict)
         self.trg_dict_size = len(dst_dict)
         self.pad_idx = dst_dict.pad()
@@ -23,7 +25,7 @@ class Discriminator(nn.Module):
         self.highway = HighwayMLP(sum(self.num_filters), nn.functional.relu, nn.functional.sigmoid)
 
 
-        self.fc = Linear(2*sum(self.num_filters), 2)
+        self.fc = Linear(2*sum(self.num_filters), 1)
 
 
     def forward(self, src_sentence, trg_sentence):
