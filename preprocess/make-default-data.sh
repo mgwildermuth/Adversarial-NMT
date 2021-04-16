@@ -10,7 +10,7 @@ bash prepare-iwslt14.sh
 
 # run the script to shorten all sentences to less than 50 words
 echo running short-sentences.py
-python short-sentences.py
+python short-sentences.py iwslt14.tokenized.de-en de-en 50
 
 #taken from: #https://github.com/lisa-groundhog/GroundHog/tree/master/experiments/nmt/preprocess
 
