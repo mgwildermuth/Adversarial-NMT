@@ -26,7 +26,7 @@ def shrink(data_path, lang1, lang2, sent_maxlen):
 		if len(f1_lines) != len(f2_lines):
 			print("~Internally screaming~")
 
-		print(f"Eliminating lines over sent_maxlen words in {path1}, {path2}")
+		print(f"Eliminating lines over sent_maxlen words in {lang1_file_name}, {lang2_file_name}")
 		with open(os.path.join(data_path, lang1_file_name), "w") as file1, open(os.path.join(data_path, lang2_file_name), "w") as file2:
 			for x in range(len(f1_lines)):
 				if len(f1_lines[x].split(' ')) <= sent_maxlen and len(f2_lines[x].split(' ')) <= sent_maxlen:
