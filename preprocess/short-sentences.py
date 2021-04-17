@@ -2,7 +2,7 @@
 import sys
 import os
 
-def shrink(data_path, lang1, lang2, sent_maxlen=32):
+def shrink(data_path, lang1, lang2, sent_maxlen=30):
 	f1_lines = []
 	f2_lines = []
 	data_files = ["train", "valid", "test"]
@@ -33,7 +33,6 @@ def shrink(data_path, lang1, lang2, sent_maxlen=32):
 				if len(f1_lines[x].split(' ')) <= sent_maxlen and len(f2_lines[x].split(' ')) <= sent_maxlen:
 					file1.write(f1_lines[x])
 					file2.write(f2_lines[x])
->>>>>>> master
 
 if __name__ == "__main__":
 	''' 
@@ -55,15 +54,6 @@ if __name__ == "__main__":
 
 	sent_maxlen = int(args[2])
 
-	#lang1 = "en"
-	#lang2 = "de"
 	print(f"args: {data_path} {lang1} {lang2} {sent_maxlen}")
 
 	shrink(data_path, lang1, lang2, sent_maxlen)
-
-	'''
-	iwslt14.tokenized.de-en
-	shrink(f"train.{lang1}", f"train.{lang2}", sent_maxlen)
-	shrink(f"valid.{lang1}", f"valid.{lang2}", sent_maxlen)
-	shrink(f"test.{lang1}", f"test.{lang2}", sent_maxlen)
-	'''
