@@ -153,7 +153,7 @@ def main(args):
 
     # define loss function
     g_criterion = torch.nn.NLLLoss(size_average=False, ignore_index=dataset.dst_dict.pad(),reduce=True)
-    d_criterion = torch.nn.BCEWithLogitsLoss()
+    d_criterion = torch.nn.BCELoss()
     pg_criterion = PGLoss(ignore_index=dataset.dst_dict.pad(), size_average=True,reduce=True)
 
     # fix discriminator word embedding (as Wu et al. do)
@@ -236,6 +236,7 @@ def main(args):
                 # logging.debug("G policy gradient loss at batch {0}: {1:.3f}, lr={2}".format(i, pg_loss.item(), g_optimizer.param_groups[0]['lr']))
                 g_optimizer.zero_grad()
                 pg_loss.backward()
+                print(f"pg_loss = {pg_loss}")
                 torch.nn.utils.clip_grad_norm(generator.parameters(), args.clip_norm)
                 g_optimizer.step()
 
@@ -296,10 +297,12 @@ def main(args):
             disc_out = discriminator(src_sentence, trg_sentence)#, dataset.dst_dict.pad())
             #print(f"disc out: {disc_out.shape}, labels: {labels.shape}")
             #print(f"labels: {labels}")
-            d_loss = d_criterion(disc_out, labels.long())
-            acc = torch.sum(torch.Sigmoid()(disc_out).round() == labels).float() / len(labels)
+            d_loss = d_criterion(torch.nn.Sigmoid()(disc_out).squeeze(), labels.squeeze().float())
+            acc = torch.sum(torch.nn.Sigmoid()(disc_out).round().squeeze() == labels.squeeze()).float() / len(labels.squeeze())
+            #print(f"real: {torch.nn.Sigmoid()(disc_out).round()}\nlabels: {labels}, shapes: {torch.nn.Sigmoid()(disc_out).round().shape}, {labels.shape}")
             d_logging_meters['train_acc'].update(acc)
             d_logging_meters['train_loss'].update(d_loss)
+            print(f"desc stats train, loss {d_loss}, acc {acc}")
             # logging.debug("D training loss {0:.3f}, acc {1:.3f} at batch {2}: ".format(d_logging_meters['train_loss'].avg,
             #                                                                            d_logging_meters['train_acc'].avg,
             #                                                                            i))
@@ -375,11 +378,12 @@ def main(args):
                 if use_cuda:
                     labels = labels.cuda()
 
-                disc_out = discriminator(src_sentence, trg_sentence, dataset.dst_dict.pad())
-                d_loss = d_criterion(disc_out, labels)
-                acc = torch.sum(torch.Sigmoid()(disc_out).round() == labels).float() / len(labels)
+                disc_out = discriminator(src_sentence, trg_sentence)#, dataset.dst_dict.pad())
+                d_loss = d_criterion(torch.nn.Sigmoid()(disc_out).squeeze(), labels.squeeze().float())
+                acc = torch.sum(torch.nn.Sigmoid()(disc_out).round().squeeze() == labels.squeeze()).float() / len(labels.squeeze())
                 d_logging_meters['valid_acc'].update(acc)
                 d_logging_meters['valid_loss'].update(d_loss)
+                #print(f"disc stats: loss {d_loss}, acc: {acc}")
                 # logging.debug("D dev loss {0:.3f}, acc {1:.3f} at batch {2}".format(d_logging_meters['valid_loss'].avg,
                 #                                                                     d_logging_meters['valid_acc'].avg, i))
 

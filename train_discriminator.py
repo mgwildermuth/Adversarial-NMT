@@ -65,7 +65,7 @@ def train_d(args, dataset):
         discriminator.cpu()
         generator.cpu()
 
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = torch.nn.BCELoss()
 
     # optimizer = eval("torch.optim." + args.d_optimizer)(filter(lambda x: x.requires_grad, discriminator.parameters()),
     #                                                     args.d_learning_rate, momentum=args.momentum, nesterov=True)
@@ -121,8 +121,10 @@ def train_d(args, dataset):
 
             disc_out = discriminator(sample['src_tokens'], sample['trg_tokens'])
 
-            loss = criterion(disc_out, sample['labels'])
-            prediction = torch.Sigmoid()(disc_out).round()
+            print(disc_out.squeeze())
+            print(sample['labels'].squeeze())
+            loss = criterion(torch.nn.Sigmoid()(disc_out.squeeze()), sample['labels'].squeeze().float())
+            prediction = torch.nn.Sigmoid()(disc_out).round()
             acc = torch.sum(prediction == sample['labels'].unsqueeze(1)).float() / len(sample['labels'])
 
             logging_meters['train_acc'].update(acc.item())
@@ -151,8 +153,8 @@ def train_d(args, dataset):
 
                 disc_out = discriminator(sample['src_tokens'], sample['trg_tokens'])
 
-                loss = criterion(disc_out, sample['labels'])
-                prediction = torch.Sigmoid()(disc_out).round()
+                loss = criterion(torch.nn.Sigmoid()(disc_out.squeeze()), sample['labels'].squeeze().float())
+                prediction = torch.nn.Sigmoid()(disc_out).round()
                 acc = torch.sum(prediction == sample['labels'].unsqueeze(1)).float() / len(sample['labels'])
 
                 logging_meters['valid_acc'].update(acc.item())

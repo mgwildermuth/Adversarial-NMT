@@ -16,26 +16,17 @@ class PGLoss(torch.nn.Module):
     def forward(self, logprobs, label, reward, use_cuda):
         bsz, seqlen, _ = logprobs.size()
         loss = 0
+        logprobs = logprobs.clone()
         for i in range(bsz):
             trg_label = label[i,:]
             row_idx = torch.LongTensor(range(seqlen))
             if use_cuda:
                 row_idx = row_idx.cuda()
-            #if self.ignore_index != None:
-            #    logprobs[:, :, self.ignore_index] = 0
-            trg_log_prob = logprobs[i, :, :][row_idx, trg_label]
-            #print(f"trg_log: {trg_log_prob.shape}, reward: {reward.shape}")
-            trg_log_prob *= reward[i]
 
-            loss += -torch.sum(trg_log_prob)
-
+            loss = loss + (-torch.sum(logprobs[i, :, :][row_idx, trg_label] * reward[i]))
+        
         if self.size_average:
-            loss /= bsz
+            loss = loss/bsz    
 
-
-        # for i in range(seqlen):
-        #     # TODO: should h be detached from graph (.detach())?
-        #     for j in range(bsz):
-        #         loss += -logprobs[j][label.data[j][i]] * reward[j]  # log(P(y_t|Y_1:Y_{t-1})) * Q
-        #
+        
         return loss
