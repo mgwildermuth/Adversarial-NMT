@@ -96,7 +96,7 @@ def train_g(args, dataset):
                 # wrap input tensors in cuda tensors
                 sample = utils.make_variable(sample, cuda=cuda)
 
-            loss = generator(sample)
+            _,_,loss = generator(sample)
             sample_size = sample['target'].size(0) if args.sentence_avg else sample['ntokens']
             nsentences = sample['target'].size(0)
             logging_loss = loss.item() / sample_size / math.log(2)
@@ -147,7 +147,7 @@ def train_g(args, dataset):
                 if use_cuda:
                     # wrap input tensors in cuda tensors
                     sample = utils.make_variable(sample, cuda=cuda)
-                loss = generator(sample)
+                _,_,loss = generator(sample)
                 sample_size = sample['target'].size(0) if args.sentence_avg else sample['ntokens']
                 loss = loss.item() / sample_size / math.log(2)
                 logging_meters['valid_loss'].update(loss, sample_size)

@@ -67,7 +67,7 @@ class LSTMModel(nn.Module):
         #print("here 4")
         loss = F.nll_loss(sys_out_batch, train_trg_batch, size_average=False, ignore_index=self.dst_dict.pad(),
                           reduce=True)
-        return decoder_out, torch.argmax(decoder_out, dim=2)
+        return decoder_out, torch.argmax(decoder_out, dim=2), loss
 
     def get_normalized_probs(self, net_output, log_probs):
         """Get normalized probabilities (or log probs) from a net's output."""

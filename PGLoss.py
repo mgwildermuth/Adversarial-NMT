@@ -25,7 +25,7 @@ class PGLoss(torch.nn.Module):
             #    logprobs[:, :, self.ignore_index] = 0
             trg_log_prob = logprobs[i, :, :][row_idx, trg_label]
             #print(f"trg_log: {trg_log_prob.shape}, reward: {reward.shape}")
-            trg_log_prob *= reward[i, :][0]
+            trg_log_prob *= reward[i]
 
             loss += -torch.sum(trg_log_prob)
 

@@ -65,7 +65,7 @@ def train_d(args, dataset):
         discriminator.cpu()
         generator.cpu()
 
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
 
     # optimizer = eval("torch.optim." + args.d_optimizer)(filter(lambda x: x.requires_grad, discriminator.parameters()),
     #                                                     args.d_learning_rate, momentum=args.momentum, nesterov=True)
@@ -122,7 +122,7 @@ def train_d(args, dataset):
             disc_out = discriminator(sample['src_tokens'], sample['trg_tokens'])
 
             loss = criterion(disc_out, sample['labels'])
-            _, prediction = F.softmax(disc_out, dim=1).topk(1)
+            prediction = torch.Sigmoid()(disc_out).round()
             acc = torch.sum(prediction == sample['labels'].unsqueeze(1)).float() / len(sample['labels'])
 
             logging_meters['train_acc'].update(acc.item())
@@ -152,7 +152,7 @@ def train_d(args, dataset):
                 disc_out = discriminator(sample['src_tokens'], sample['trg_tokens'])
 
                 loss = criterion(disc_out, sample['labels'])
-                _, prediction = F.softmax(disc_out, dim=1).topk(1)
+                prediction = torch.Sigmoid()(disc_out).round()
                 acc = torch.sum(prediction == sample['labels'].unsqueeze(1)).float() / len(sample['labels'])
 
                 logging_meters['valid_acc'].update(acc.item())
